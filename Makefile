@@ -26,17 +26,20 @@ all:	jonesforth
 jonesforth: jonesforth.S
 	gcc -m32 -nostdlib -static -Wl,-Ttext,$(TEXT) $(BUILD_ID_NONE) -o $@ $<
 
-run:
+run: jonesforth
 	cat jonesforth.f $(PROG) - | ./jonesforth
 
 clean:
-	rm -f jonesforth perf_dupdrop *~ core .test_*
+	rm -f perf_dupdrop *~ core .test_*
+
+distclean: clean
+	rm -f jonesforth
 
 # Tests.
 
 TESTS	:= $(patsubst %.f,%.test,$(wildcard test_*.f))
 
-test check: $(TESTS)
+test check: jonesforth $(TESTS)
 
 test_%.test: test_%.f jonesforth
 	@echo -n "$< ... "
@@ -57,7 +60,7 @@ run_perf_dupdrop: jonesforth
 	cat <(echo ': TEST-MODE ;') jonesforth.f perf_dupdrop.f | ./jonesforth
 
 .SUFFIXES: .f .test
-.PHONY: test check run run_perf_dupdrop
+.PHONY: test check run run_perf_dupdrop clean
 
 remote:
 	scp jonesforth.S jonesforth.f rjones@oirase:Desktop/
