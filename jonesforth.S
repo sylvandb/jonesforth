@@ -797,6 +797,7 @@ code_\label :			// assembler code follows
 	In this FORTH, only /MOD is primitive.  Later we will define the / and MOD words in
 	terms of the primitive /MOD.  The design of the i386 assembly instruction idiv which
 	leaves both quotient and remainder makes this the obvious choice.
+	Modified per: https://rwmj.wordpress.com/2010/08/07/jonesforth-git-repository/
 */
 
 	defcode "/MOD",4,,DIVMOD
@@ -804,6 +805,20 @@ code_\label :			// assembler code follows
 	pop %eax
 	cdq
 	idivl %ebx
+	push %edx		// push remainder
+	push %eax		// push quotient
+	NEXT
+
+/*	Another fix is the U. in file jonesforth.f which should use U/MOD instead of /MOD.
+	The proposed change of Richard is to add U/MOD primitive and modify U. accordingly.
+	Added per: https://rwmj.wordpress.com/2010/08/07/jonesforth-git-repository/
+*/
+
+	defcode "U/MOD",5,,UDIVMOD
+	xor %edx, %edx
+	pop %ebx
+	pop %eax
+	divl %ebx
 	push %edx		// push remainder
 	push %eax		// push quotient
 	NEXT
