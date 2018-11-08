@@ -5,10 +5,26 @@ BUILD_ID_NONE :=
 
 SHELL	:= /bin/bash
 
+# Alain Kalker writes:
+# Newer Linux kernels have a feature which allows to protect an area of low
+# virtual memory from userspace allocation (configured by
+# CONFIG_DEFAULT_MMAP_MIN_ADDR), which can help reduce the impact of kernel
+# NULL pointer bugs.
+# Get (or change) the current value by reading (or writing)
+#   /proc/sys/vm/mmap_min_addr
+# On my system, `cat /proc/sys/vm/mmap_min_addr` returns 4096, so I updated the
+# linker options to `-Wl,-Ttext,1000` (note: the address must be specified in
+# hex!), and everything works well.
+# Rich Jones writes:
+# Note that we do assume the text starts at address zero.
+# [but I don't see a dependency]
+# https://rwmj.wordpress.com/2010/08/07/jonesforth-git-repository/
+TEXT	:= $(shell printf '%04x' $(shell cat /proc/sys/vm/mmap_min_addr))
+
 all:	jonesforth
 
 jonesforth: jonesforth.S
-	gcc -m32 -nostdlib -static  $(BUILD_ID_NONE) -o $@ $<
+	gcc -m32 -nostdlib -static -Wl,-Ttext,$(TEXT) $(BUILD_ID_NONE) -o $@ $<
 
 run:
 	cat jonesforth.f $(PROG) - | ./jonesforth
